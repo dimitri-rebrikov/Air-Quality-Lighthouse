@@ -15,10 +15,17 @@ thr=th/sin(90-anr); // roof thickness
 rbi=ro+0.25; // base inner radius
 bta=ta*0.05; // base height
 rbo=rbi+ro*0.15; // base outer radius
-wic=12; // windows count
-wico=0.7; // coefficient window width to windows distance
-wiw=sin(360/wic/2)*rol*2*wico; // windows width
-wih=(tar-tabr)*0.8; // windows height
+lwic=12; // light windows number
+lwico=0.7; // coefficient light window width to windows distance
+lwiw=sin(360/lwic/2)*rol*2*lwico; // light windows width
+lwih=(tar-tabr)*0.8; // light windows height
+hwiw=ro/5; // house windows width
+hwih=ta/10; // house windows height
+h0h=bta; // ground floor height
+h0wic=8; // ground floor windows number
+h1h=ta*0.34; // first floor height
+h1wic=4; // first floor windows number
+
 
 
 module bodyOutline() {
@@ -40,31 +47,47 @@ module baseOutline() {
 }
 
 module base() {
+    color("black")
     rotate_extrude($fn=200)
         baseOutline();
 }
 
-module window() {
-    translate([0,0,wih/2])
+module window(r,w,h) {
+    translate([0,0,h/2])
     rotate([0,-90,0])
-    translate([-wih/2,-wiw/2,-rol])
-    linear_extrude(height=rol*2)
+    translate([-h/2,-w/2,-r])
+    linear_extrude(height=r*2)
     union() {
-        square([wih-wiw/2,wiw]);
-        translate([wih-wiw/2,wiw/2]) circle(wiw/2, $fn=200);
+        square([h-w/2,w]);
+        translate([h-w/2,w/2]) circle(w/2, $fn=200);
     }
 }
 
-module windows() {
-    for(ang = [0:360/wic:180]) {
-        rotate([0,0,ang]) window();
+module lwindows() {
+    for(ang = [0:360/lwic:180]) {
+        rotate([0,0,ang]) window(rol,lwiw,lwih);
+    }
+}
+
+module h0windows() {
+    for(ang = [0:360/h0wic:180]) {
+        rotate([0,0,ang]) window(ro,hwiw,hwih);
+    }
+}
+
+module h1windows() {
+    for(ang = [0:360/h1wic:180]) {
+        rotate([0,0,ang]) window(ro,hwiw,hwih);
     }
 }
 
 module bodyComplete() {
+    color("white")
     difference() {
         bodyOnly();
-        translate([0,0,tabr]) windows();
+        translate([0,0,tabr]) lwindows();
+        translate([0,0,h0h]) h0windows();
+        translate([0,0,h1h]) h1windows();
     }
 }
 
@@ -72,6 +95,7 @@ module bodyComplete() {
 //baseOutline();
 //bodyOnly();
 base();
-//window();
-//windows();
+//window(15,5,10);
+//lwindows();
+//h0windows();
 bodyComplete();
