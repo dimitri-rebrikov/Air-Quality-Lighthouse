@@ -6,7 +6,7 @@ ri=di/2; // lighthouse inner radius
 ro=ri+th; // lighthouse outer radius
 rob=ro*1.1; // balkony outher radius
 rib=rob-th; // balknoy inner radius
-rol=ro*0.8; // light outer radius
+rol=ro*0.7; // light outer radius
 ril=rol-th; // ligth inner radius
 tab=ta*0.65; // balkony height
 tabr=tab+ta*0.05; // balkony railing height
@@ -24,20 +24,39 @@ hwih=ta/10; // house windows height
 h0h=bta; // ground floor height
 h0wic=8; // ground floor windows number
 h1h=ta*0.34; // first floor height
-h1wic=4; // first floor windows number
-
-
+h1wic=8; // first floor windows number
+clr=0.5; // clearance between modules
+lrih=lwih/2; // light reflector height
+lrita=tabr+lwih/2-lrih/2; // light reflector position
 
 module bodyOutline() {
     polygon(points=[
         [ri,0],[ro,0],[ro,tab-ta*0.06],[rob,tab],[rob,tabr],[rib,tabr], [rib,tab],[rol,tab],[rol,tar],[0,ta],
-    [0,ta-thr],[ril, tar-thr+th/tan(90-anr)],[ril,tab-th],[ri, tab-(ri-ril)*2]
+    [0,tar-th],[ril, tar-th],[ril,tab-th],[ri, tab-(ri-ril)*2]
+    ]);
+}
+
+module lightReflectorOutline() {
+    polygon(points=[
+        [0,tar],[0,lrita],[ril,tar]
+    ]);
+}   
+    
+
+module carrierOutline() {
+    polygon(points=[
+        [0,5],[ri-clr,0],[ri-clr,tab-(ri-ril)*2-clr*2],[ril-clr*2,tab-th],[0,tab-th]
     ]);
 }
  
 module bodyOnly() {
     rotate_extrude($fn=200)
         bodyOutline();
+}
+
+module lightReflector() {
+    rotate_extrude($fn=200)
+        lightReflectorOutline();
 }
 
 module baseOutline() {
@@ -52,15 +71,19 @@ module base() {
         baseOutline();
 }
 
+module windowOutline(w,h) {
+    union() {
+        square([w,h-w/2]);
+        translate([w/2,h-w/2]) circle(w/2, $fn=200);
+    };
+}  
+
 module window(r,w,h) {
     translate([0,0,h/2])
-    rotate([0,-90,0])
-    translate([-h/2,-w/2,-r])
+    rotate([90,0,0])
+    translate([-w/2,-h/2,-r])
     linear_extrude(height=r*2)
-    union() {
-        square([h-w/2,w]);
-        translate([h-w/2,w/2]) circle(w/2, $fn=200);
-    }
+    windowOutline(w,h);
 }
 
 module lwindows() {
@@ -83,18 +106,25 @@ module h1windows() {
 
 module bodyComplete() {
     color("white")
-    difference() {
-        bodyOnly();
-        translate([0,0,tabr]) lwindows();
-        translate([0,0,h0h]) h0windows();
-        translate([0,0,h1h]) h1windows();
+    union() {
+        difference() {
+            bodyOnly();
+            translate([0,0,tabr]) lwindows();
+            //translate([0,0,h0h]) h0windows();
+            translate([0,0,h1h]) h1windows();
+        };
+        lightReflector();
     }
 }
 
+
 //bodyOutline();
+//lightReflectorOutline();
 //baseOutline();
+//carrierOutline();
+//indowOutline(5,10);
 //bodyOnly();
-base();
+//base();
 //window(15,5,10);
 //lwindows();
 //h0windows();
