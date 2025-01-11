@@ -1,25 +1,57 @@
-ta=100; // lighthouse height
-di=30; // lighthouse inner diameter
+// circuits carrier dimensions
+cledh=10; // carrier height reserved for led
+cesph=65; // carrier height reserved for esp
+cvwh=10; // carrier height reserver for vent windows
+cespw=40; // carrier width reserved for esp
+ch=cledh+cesph+cvwh; // carrier height
+cw=cespw; // carrier width
+clh=ch-cledh; // carrier led area start height
+cth=2; // wall thickens carrier
+
+// lighthouse proportions
+prbah=0.05; // base height
+prf0h=0.30; // ground floor height
+prf1h=0.30; // first floor height
+prf2h=0.35; // second floor ( light and roof ) height
+anr=45; // roof angle
+prbw=1.1; // balcony diameter
+prlw=0.7; // light diameter
+prbrh=0.05; // balcony railing height
+prbth=0.05; // balcony transition height
+
+// technical
+clr=0.1; // clearance between objects
 th=1.6; // wall thickness
-thcr=2; // wall thickens carrier
-anr=45; // lighthouse roof angle
+
+//lighthouse
+di=cw+clr; // lighthouse inner diameter
 ri=di/2; // lighthouse inner radius
 ro=ri+th; // lighthouse outer radius
-rob=ro*1.1; // balcony outer radius
+rol=ro*prlw; // light outer radius
+rh=tan(anr)*rol; // roof height
+ta=clh/(prbah+prf0h+prf1h)+rh; // lighthouse height
+rob=ro*prbw; // balcony outer radius
 rib=rob-th; // balcony inner radius
-rol=ro*0.7; // light outer radius
 ril=rol-th; // light inner radius
-tab=ta*0.65; // balcony height
-tabr=tab+ta*0.05; // balcony railing height
-tar=ta-tan(anr)*rol; // roof height
+tab=ch+th; // balcony height
+tabr=tab+ta*prbrh; // balcony railing height
+tar=ta-rh; // roof floor height
 thr=th/sin(90-anr); // roof thickness
-rbi=ro+0.25; // base inner radius
-bta=ta*0.05; // base height
+
+clw=(ril-clr)*2; // carrier led area narrow width
+
+// base
+rbi=ro+clr; // base inner radius
+bta=ta*prbah; // base height
 rbo=rbi+ro*0.15; // base outer radius
+
+// light
 lwic=12; // light windows number
 lwico=0.7; // coefficient light window width to windows distance
 lwiw=sin(360/lwic/2)*rol*2*lwico; // light windows width
 lwih=(tar-tabr)*0.8; // light windows height
+
+//floors
 floh=ta*0.25; // floor height
 h0h=bta; // ground floor height
 h1h=h0h+floh; // first floor height
@@ -30,10 +62,24 @@ hwifh=(floh-hwih)/2; // house windows height over floor
 lrih=lwih; // light reflector height
 lrita=tabr+lwih/2-lrih/2; // light reflector position
 
+module carrierOutline() {
+    difference() { 
+        polygon(points=[
+            [0,0],[cw/2,0],[cw/2,clh],[clw/2,ch],[0,ch]
+        ]);
+        translate([cw/5/2,0,0]) windowOutline(cw/5,cvwh);
+    }
+}
+
 module bodyOutline() {
     polygon(points=[
-        [ri,0],[ro,0],[ro,tab-ta*0.06],[rob,tab],[rob,tabr],[rib,tabr], [rib,tab],[rol,tab],[rol,tar],[0,ta],
-    [0,tar-th],[ril, tar-th],[ril,tab-th],[ri, tab-(ri-ril)*2]
+        [ri,0],[ro,0],
+        [ro,tab-ta*0.06],
+        [rob,tab],[rob,tabr],[rib,tabr], 
+        [rib,tab],[rol,tab],
+        [rol,tar],[0,ta],
+        [0,tar-th],[ril, tar-th],
+        [ril,tab-th],[ri, clh]
     ]);
 }
 
@@ -42,15 +88,6 @@ module lightReflectorOutline() {
         [0,tar],[0,lrita],[ril,tar]
     ]);
 }   
-    
-module carrierOutline() {
-    difference() { 
-        polygon(points=[
-            [0,0],[ri,0],[ri,tab-(ri-ril)*2],[ril,tab-th],[0,tab-th]
-        ]);
-        translate([ri*2/5/2,0,0]) windowOutline(ri*2/5,lwih);
-    }
-}
 
 module carrier() {
     difference() {
@@ -62,7 +99,9 @@ module carrier() {
                 mirror([1,0,0])
                     carrierOutline();
             };
-        bodyComplete();
+        // clearance for the edges
+        translate([clr,0,0]) bodyComplete(); 
+        translate([-clr,0,0]) bodyComplete();     
     }
 }    
  
@@ -172,6 +211,22 @@ module roofSeparate() {
     };
 }
 
+module completeAssembly(){
+    baseComplete();
+    bodyComplete();
+}
+
+module projectionX() {
+    projection(cut=true)
+    rotate([-90,0,0])
+    completeAssembly();
+}
+
+module projectionY() {
+    projection(cut=true)
+    rotate([0,-90,0])
+    completeAssembly();
+}
 
 //bodyOutline();
 //lightReflectorOutline();
@@ -185,10 +240,12 @@ module roofSeparate() {
 //lwindows();
 //h0windows();
 
+//projectionX();
+//projectionY();
 
-translate([-50,0,0]) baseComplete();
-bodyComplete();
-
+translate([-100,0,0]) baseComplete();
+translate([-50,0,0]) bodyComplete();
+completeAssembly();
 groundFloorSeparate();
 firstFloorSeparate();
 secondFloorSeparate();
