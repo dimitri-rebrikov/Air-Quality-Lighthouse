@@ -62,25 +62,37 @@ hwifh=(floh-hwih)/2; // house windows height over floor
 lrih=lwih; // light reflector height
 lrita=tabr+lwih/2-lrih/2; // light reflector position
 
+lr=th*2; // lock radius
+
+odist=rbo*2+20; // object distance
+
 module carrierOutline() {
-    difference() { 
-        polygon(points=[
-            [0,0],[cw/2,0],[cw/2,clh],[clw/2,ch],[0,ch]
-        ]);
-        translate([cw/5/2,0,0]) windowOutline(cw/5,cvwh);
-    }
+    polygon(points=[
+        [0,0],[cw/2,0],[cw/2,clh],[clw/2,ch],[0,ch]
+    ]);
+}
+
+module lockOutline(){
+    difference(){
+        circle(lr, $fn=200);
+        translate([0,-lr,0]) square([lr, lr*2]);
+    };
 }
 
 module bodyOutline() {
-    polygon(points=[
-        [ri,0],[ro,0],
-        [ro,tab-ta*0.06],
-        [rob,tab],[rob,tabr],[rib,tabr], 
-        [rib,tab],[rol,tab],
-        [rol,tar],[0,ta],
-        [0,tar-th],[ril, tar-th],
-        [ril,tab-th],[ri, clh]
-    ]);
+    union() {
+        polygon(points=[
+            [ri,0],[ro,0],
+            [ro,tab-ta*0.06],
+            [rob,tab],[rob,tabr],[rib,tabr], 
+            [rib,tab],[rol,tab],
+            [rol,tar],[0,ta],
+            [0,tar-th],[ril, tar-th],
+            [ril,tab-th],[ri, clh]
+        ]);
+        translate([ro, hwifh+hwih/2, 0]) lockOutline();
+    }
+    
 }
 
 module lightReflectorOutline() {
@@ -93,17 +105,31 @@ module carrier() {
     difference() {
         translate([0,thr/2,0])
         rotate([90,0,0])
-        linear_extrude(thr)
-            union() {
-                carrierOutline();
-                mirror([1,0,0])
+        union(){
+            linear_extrude(thr)
+                union() {
                     carrierOutline();
-            };
+                    mirror([1,0,0])
+                        carrierOutline();
+                };
+            carrierFoot();
+        };
+        translate([cw/5,thr*1.5,0]) window(thr*3,cw/4,cvwh);
+        translate([-cw/5,thr*1.5,0]) window(thr*3,cw/4,cvwh);
         // clearance for the edges
         translate([clr,0,0]) bodyComplete(); 
         translate([-clr,0,0]) bodyComplete();     
     }
-}    
+}
+
+module carrierFoot() {
+    translate([-cw/2,0,thr/2])
+    rotate([0,90,0])
+    linear_extrude(cw)
+    polygon(points=[
+        [-thr*1.5,0],[thr*1.5,0],[thr/2,cvwh],[-thr/2,cvwh]
+    ]);
+}
  
 module bodyOnly() {
     rotate_extrude($fn=200)
@@ -177,7 +203,7 @@ module bodyComplete() {
 }
 
 module groundFloorSeparate() {
-    translate([50,0,0]) 
+    translate([odist,0,0]) 
     difference() {
         bodyComplete();
         translate([-rob,-rob,h1h]) cube([rob*2,rob*2,ta]);
@@ -185,7 +211,7 @@ module groundFloorSeparate() {
 }
 
 module firstFloorSeparate() {
-    color("red") translate([100,0,0]) 
+    color("red") translate([odist*2,0,0]) 
     difference() {
         bodyComplete();
         translate([-rob,-rob,0]) cube([rob*2,rob*2,h1h]);
@@ -195,7 +221,7 @@ module firstFloorSeparate() {
 }
 
 module secondFloorSeparate() {
-    translate([150,0,0]) 
+    translate([odist*3,0,0]) 
     difference() {
         bodyComplete();
         translate([-rob,-rob,0]) cube([rob*2,rob*2,h2h]);
@@ -204,7 +230,7 @@ module secondFloorSeparate() {
 }
 
 module roofSeparate() {
-    color("red") translate([200,0,0]) 
+    color("red") translate([odist*4,0,0]) 
     difference() {
         bodyComplete();
         translate([-rob,-rob,0]) cube([rob*2,rob*2,tar]);
@@ -228,10 +254,12 @@ module projectionY() {
     completeAssembly();
 }
 
+//lockOutline();
 //bodyOutline();
 //lightReflectorOutline();
 //baseOutline();
 //carrierOutline();
+//carrierFoot();
 //windowOutline(5,10);
 //carrier();
 //bodyOnly();
@@ -243,8 +271,8 @@ module projectionY() {
 //projectionX();
 //projectionY();
 
-translate([-100,0,0]) baseComplete();
-translate([-50,0,0]) bodyComplete();
+translate([-odist*2,0,0]) baseComplete();
+translate([-odist,0,0]) bodyComplete();
 completeAssembly();
 groundFloorSeparate();
 firstFloorSeparate();
