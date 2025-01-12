@@ -1,7 +1,7 @@
 // circuits carrier dimensions
 cledh=10; // carrier height reserved for led
 cesph=65; // carrier height reserved for esp
-cvwh=10; // carrier height reserver for vent windows
+cvwh=15; // carrier height reserver for vent windows
 cespw=40; // carrier width reserved for esp
 ch=cledh+cesph+cvwh; // carrier height
 cw=cespw; // carrier width
@@ -44,6 +44,9 @@ clw=(ril-clr)*2; // carrier led area narrow width
 rbi=ro+clr; // base inner radius
 bta=ta*prbah; // base height
 rbo=rbi+ro*0.15; // base outer radius
+
+// cable channel
+cabd=3.5; // cable diameter for cable channel
 
 // light
 lwic=12; // light windows number
@@ -143,7 +146,7 @@ module lightReflector() {
 
 module baseOutline() {
     polygon(points=[
-     [0,0],[rbi,0],[rbi,bta],[rbi+th,bta],[rbo,-th],[0,-th]
+     [0,0],[rbi,0],[rbi,bta],[rbi+th,bta],[rbo,-th-cabd],[0,-th-cabd]
     ]);
 }
 
@@ -152,10 +155,20 @@ module base() {
         baseOutline();
 }
 
+module cableChannel() {
+    translate([0,thr*1.5,bta])
+    mirror([0,1,0])
+    mirror([0,0,1])
+    window(rbo,3.5,bta+cabd);
+}
+
 module baseComplete() {
     color("gray")
     union() {
-        base();
+        difference() {
+            base();
+            cableChannel();
+        };            
         carrier();
     }
 }
@@ -263,6 +276,7 @@ module projectionY() {
 //windowOutline(5,10);
 //carrier();
 //bodyOnly();
+//cableChannel();
 //base();
 //window(15,5,10);
 //lwindows();
@@ -271,8 +285,10 @@ module projectionY() {
 //projectionX();
 //projectionY();
 
-translate([-odist*2,0,0]) baseComplete();
-translate([-odist,0,0]) bodyComplete();
+translate([-odist*2,0,0]) 
+    baseComplete();
+translate([-odist,0,0]) 
+    bodyComplete();
 completeAssembly();
 groundFloorSeparate();
 firstFloorSeparate();
