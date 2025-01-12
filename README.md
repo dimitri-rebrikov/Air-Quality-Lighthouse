@@ -8,3 +8,8 @@ I will provide the same functionality (the direct led status light and the detai
 The design of the lighthouse shall make it possible to use different ESP modules.
 
 under construction...
+
+- [Open SCAD design of the Lighthouse](./Lighthouse.scad)
+- [ESPHome definition of the Air Quality notification](./esphome.yaml)
+
+howto run esphome: `esphome -s esphome_name <your-name-for-the-device> run .\esphome.yaml`
