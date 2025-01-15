@@ -1,5 +1,5 @@
 // circuits carrier dimensions
-cledh=10; // carrier height reserved for led
+cledh=15; // carrier height reserved for led
 cesph=65; // carrier height reserved for esp
 cvwh=15; // carrier height reserver for vent windows
 cespw=40; // carrier width reserved for esp
@@ -61,11 +61,12 @@ h1h=h0h+floh; // first floor height
 h2h=h1h+floh; // second floor height
 hwiw=ro/4; // house windows width
 hwih=floh/2; // house windows height
-hwifh=(floh-hwih)/2; // house windows height over floor
+hwifh=(floh-hwih)/3*2; // house windows height over floor
 lrih=lwih; // light reflector height
 lrita=tabr+lwih/2-lrih/2; // light reflector position
 
 lr=th*2; // lock radius
+loa=asin(hwiw / (2*ri)) * 2; // lock outcut angle
 
 odist=rbo*2+20; // object distance
 
@@ -82,20 +83,29 @@ module lockOutline(){
     };
 }
 
-module bodyOutline() {
+module lock() {
     union() {
-        polygon(points=[
-            [ri,0],[ro,0],
-            [ro,tab-ta*0.06],
-            [rob,tab],[rob,tabr],[rib,tabr], 
-            [rib,tab],[rol,tab],
-            [rol,tar],[0,ta],
-            [0,tar-th],[ril, tar-th],
-            [ril,tab-th],[ri, clh]
-        ]);
-        translate([ro, hwifh+hwih/2, 0]) lockOutline();
+        rotate([0,0,90+loa/2])
+            rotate_extrude(angle=180-loa, $fn=200)
+                translate([ro, hwifh+hwih/2, 0])  
+                    lockOutline();
+        rotate([0,0,-(90-loa/2)])
+            rotate_extrude(angle=180-loa, $fn=200)
+                translate([ro, hwifh+hwih/2, 0])  
+                    lockOutline();
     }
-    
+}
+
+module bodyOutline() {
+    polygon(points=[
+        [ri,0],[ro,0],
+        [ro,tab-ta*0.06],
+        [rob,tab],[rob,tabr],[rib,tabr], 
+        [rib,tab],[rol,tab],
+        [rol,tar],[0,ta],
+        [0,tar-th],[ril, tar-th],
+        [ril,tab-th],[ri, clh]
+    ]); 
 }
 
 module lightReflectorOutline() {
@@ -212,11 +222,11 @@ module bodyComplete() {
             translate([0,0,h1h+hwifh]) h1windows();
         };
         lightReflector();
+        lock();
     }
 }
 
 module groundFloorSeparate() {
-    translate([odist,0,0]) 
     difference() {
         bodyComplete();
         translate([-rob,-rob,h1h]) cube([rob*2,rob*2,ta]);
@@ -268,6 +278,7 @@ module projectionY() {
 }
 
 //lockOutline();
+//lock();
 //bodyOutline();
 //lightReflectorOutline();
 //baseOutline();
@@ -290,7 +301,8 @@ translate([-odist*2,0,0])
 translate([-odist,0,0]) 
     bodyComplete();
 completeAssembly();
-groundFloorSeparate();
+translate([odist,0,0]) 
+    groundFloorSeparate();
 firstFloorSeparate();
 secondFloorSeparate();
 roofSeparate();
