@@ -1,12 +1,41 @@
+cth=2; // wall thickens carrier
+
+// esp card dimensions
+esph=38.5; // height
+espw=31; // width
+espt=1.5; // thickness
+
+// sensor card dimensions
+senh=13.7;
+senw=16.3;
+sent=1.5;
+
+// led card dimensions
+ledw=9.4;
+ledh=6.2;
+ledt=1.9;
+
+// generic holder
+holdg=0.8; // groove to hold the card
+holdwt=0.8; // wall thickness
+holdbt=cth; // base thickness
+holdxa=1.2; // extra thick wall area around groove
+holdclr=0.2; // clearance between card and holder
+holddi=5; // card distance to holder base
+function holdh(cardh) = cardh+(holdclr+holdxa)*2;
+function holdw(cardw) = cardw+(holdclr+holdwt)*2;
+function holdd(cardt) = holdbt+holddi+cardt+holdxa;
+
 // circuits carrier dimensions
-cledh=15; // carrier height reserved for led
-cesph=65; // carrier height reserved for esp
+cledholdd=holdd(ledt)-(ledt+2*holdxa); // how deep the led holder is integrated into carrier
+cledh=cledholdd+2; // carrier height reserved for led
+cesph=holdh(esph); // carrier height reserved for esp
 cvwh=15; // carrier height reserver for vent windows
-cespw=40; // carrier width reserved for esp
+cespw=sqrt(holdd(espt)^2+(holdw(espw)/2)^2)*2; // carrier width reserved for esp
 ch=cledh+cesph+cvwh; // carrier height
 cw=cespw; // carrier width
 clh=ch-cledh; // carrier led area start height
-cth=2; // wall thickens carrier
+cfth=cth*4; // carrier foot thickness
 
 // lighthouse proportions
 prbah=0.05; // base height
@@ -20,7 +49,7 @@ prbrh=0.05; // balcony railing height
 prbth=0.05; // balcony transition height
 
 // technical
-clr=0.1; // clearance between objects
+clr=0.3; // clearance between objects
 th=1.6; // wall thickness
 
 //lighthouse
@@ -62,13 +91,49 @@ h2h=h1h+floh; // second floor height
 hwiw=ro/4; // house windows width
 hwih=floh/2; // house windows height
 hwifh=(floh-hwih)/3*2; // house windows height over floor
-lrih=lwih; // light reflector height
+lrih=lwih/3*2; // light reflector height
 lrita=tabr+lwih/2-lrih/2; // light reflector position
 
 lr=th*2; // lock radius
-loa=asin(hwiw / (2*ri)) * 2; // lock outcut angle
+loa=asin(cfth / (2*ri)) * 2 + 20; // lock outcut angle
 
 odist=rbo*2+20; // object distance
+
+module cardHolder(cardw,cardh,cardt) {
+    holdh=holdh(cardh);
+    holdw=holdw(cardw);
+    holdd=holdd(cardt);
+    translate([-holdw/2,0,0])
+    difference() {
+        // base quader
+        linear_extrude (holdd) 
+            square([holdw, holdh]);
+        // outcut for thick the groove area
+        translate([holdwt+holdxa,0,holdbt])
+            linear_extrude(holdd)
+                square([holdw-(holdwt+holdxa)*2, holdh]);
+        // esp outcut
+        translate([holdwt,(holdh-cardh)/2,holddi+holdbt])
+            linear_extrude(cardt) 
+                square([cardw,cardh]);
+        // outcut for the thin wall area
+        translate([holdwt,0,holdbt])
+            linear_extrude(holddi-holdxa)
+                square([holdw-holdwt*2, holdh]);
+    };  
+}
+
+module espHolder() {
+    cardHolder(espw,esph,espt);
+}
+
+module senHolder() {
+    cardHolder(senw,senh,sent);
+}
+
+module ledHolder() {
+    cardHolder(ledw,ledh,ledt);
+}
 
 module carrierOutline() {
     polygon(points=[
@@ -87,11 +152,11 @@ module lock() {
     union() {
         rotate([0,0,90+loa/2])
             rotate_extrude(angle=180-loa, $fn=200)
-                translate([ro, hwifh+hwih/2, 0])  
+                translate([ro, cvwh/2, 0])  
                     lockOutline();
         rotate([0,0,-(90-loa/2)])
             rotate_extrude(angle=180-loa, $fn=200)
-                translate([ro, hwifh+hwih/2, 0])  
+                translate([ro, cvwh/2, 0])  
                     lockOutline();
     }
 }
@@ -114,33 +179,47 @@ module lightReflectorOutline() {
     ]);
 }   
 
+// carrier is the vertical wall
+// with circuit holders
 module carrier() {
     difference() {
         translate([0,thr/2,0])
         rotate([90,0,0])
         union(){
-            linear_extrude(thr)
+            linear_extrude(cth)
                 union() {
                     carrierOutline();
                     mirror([1,0,0])
                         carrierOutline();
                 };
             carrierFoot();
+            translate([0,cvwh,cth])
+                rotate([0,180,0]) 
+                    espHolder();
+            translate([0,cvwh,0])
+                senHolder();
+            translate([0,ch-cledholdd,(holdh(ledh)+cth)/2])
+                rotate([-90,0,0]) 
+                    ledHolder();
         };
-        translate([cw/5,thr*1.5,0]) window(thr*3,cw/4,cvwh);
-        translate([-cw/5,thr*1.5,0]) window(thr*3,cw/4,cvwh);
+        translate([0,cfth/2+1,0]) 
+            window(cfth+2,cw/2,cvwh);
         // clearance for the edges
-        translate([clr,0,0]) bodyComplete(); 
-        translate([-clr,0,0]) bodyComplete();     
+        translate([clr,0,clr]) bodyComplete(); 
+        translate([clr,0,-clr]) bodyComplete(); 
+        translate([-clr,0,clr]) bodyComplete();  
+        translate([-clr,0,-clr]) bodyComplete();  
     }
 }
 
+// because of the big hole in the carrier
+// it has a thick foot for more sturdiness
 module carrierFoot() {
-    translate([-cw/2,0,thr/2])
+    translate([-cw/2,0,cth/2])
     rotate([0,90,0])
     linear_extrude(cw)
     polygon(points=[
-        [-thr*1.5,0],[thr*1.5,0],[thr/2,cvwh],[-thr/2,cvwh]
+        [-cfth/2,0],[cfth/2,0],[cth/2,cvwh],[-cth/2,cvwh]
     ]);
 }
  
@@ -160,6 +239,8 @@ module baseOutline() {
     ]);
 }
 
+// base is the round puck
+// on wich the carier is mounted
 module base() {
     rotate_extrude($fn=200)
         baseOutline();
@@ -172,6 +253,7 @@ module cableChannel() {
     window(rbo,3.5,bta+cabd);
 }
 
+// base and carrier
 module baseComplete() {
     color("gray")
     union() {
@@ -190,6 +272,7 @@ module windowOutline(w,h) {
     };
 }  
 
+// generich window
 module window(r,w,h) {
     translate([0,-r,h/2])
     rotate([90,0,0])
@@ -209,9 +292,12 @@ module h0windows() {
 }
 
 module h1windows() {
-    window(ro,hwiw,hwih);
+    for(ang = [-45,0,45]) {
+        rotate([0,0,ang]) window(ro,hwiw,hwih);
+    }
 }
 
+// body is the outer shell of the lighthouse
 module bodyComplete() {
     color("white")
     union() {
@@ -226,6 +312,7 @@ module bodyComplete() {
     }
 }
 
+// ground floor for separate print
 module groundFloorSeparate() {
     difference() {
         bodyComplete();
@@ -233,6 +320,7 @@ module groundFloorSeparate() {
     };
 }
 
+// first floor for separate print
 module firstFloorSeparate() {
     color("red") translate([odist*2,0,0]) 
     difference() {
@@ -243,6 +331,7 @@ module firstFloorSeparate() {
     };
 }
 
+// second floor for separate print
 module secondFloorSeparate() {
     translate([odist*3,0,0]) 
     difference() {
@@ -252,6 +341,7 @@ module secondFloorSeparate() {
     };
 }
 
+// roof for separate print
 module roofSeparate() {
     color("red") translate([odist*4,0,0]) 
     difference() {
@@ -260,23 +350,30 @@ module roofSeparate() {
     };
 }
 
+// all parts together
 module completeAssembly(){
     baseComplete();
     bodyComplete();
 }
 
+// x cross-section for check/docu
 module projectionX() {
     projection(cut=true)
     rotate([-90,0,0])
     completeAssembly();
 }
 
+// y cross-section for check/docu
 module projectionY() {
     projection(cut=true)
     rotate([0,-90,0])
     completeAssembly();
 }
 
+//ledHolder();
+//rotate([90,0,0])
+//    espHolder();
+//    senHolder();
 //lockOutline();
 //lock();
 //bodyOutline();
