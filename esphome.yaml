@@ -2,7 +2,7 @@ esphome:
   name: $esphome_name
 
 esp32:
-  board: esp32dev
+  board: wemos_d1_mini32
 
 # Enable logging
 logger:
