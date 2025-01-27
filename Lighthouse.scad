@@ -22,15 +22,15 @@ holdbt=cth; // base thickness
 holdxa=1.2; // extra thick wall area around groove
 holdclr=0.2; // clearance between card and holder
 holddi=5; // card distance to holder base
-function holdh(cardh) = cardh+(holdclr+holdxa)*2;
-function holdw(cardw) = cardw+(holdclr+holdwt)*2;
-function holdd(cardt) = holdbt+holddi+cardt+holdxa;
+function holdh(cardh,hclr=holdclr,hxa=holdxa) = cardh+(hclr+hxa)*2;
+function holdw(cardw,hclr=holdclr,hwt=holdwt) = cardw+(hclr+hwt)*2;
+function holdd(cardt,hbt=holdbt,hdi=holddi,hxa=holdxa) = hbt+hdi+cardt+hxa;
 
 // circuits carrier dimensions
-cledholdd=holdd(ledt)-(ledt+2*holdxa); // how deep the led holder is integrated into carrier
-cledh=cledholdd+2; // carrier height reserved for led
+cledholdd=holdd(ledt,hdi=1)-(ledt+2*holdxa); // how deep the led holder is integrated into carrier
+cledh=cledholdd+5; // carrier height reserved for led
 cesph=holdh(esph); // carrier height reserved for esp
-cvwh=15; // carrier height reserver for vent windows
+cvwh=30; // carrier height reserver for the usb plug
 cespw=sqrt(holdd(espt)^2+(holdw(espw)/2)^2)*2; // carrier width reserved for esp
 ch=cledh+cesph+cvwh; // carrier height
 cw=cespw; // carrier width
@@ -49,7 +49,7 @@ prbrh=0.05; // balcony railing height
 prbth=0.05; // balcony transition height
 
 // technical
-clr=0.3; // clearance between objects
+clr=0.2; // clearance between objects
 th=1.6; // wall thickness
 
 //lighthouse
@@ -99,27 +99,33 @@ loa=asin(cfth / (2*ri)) * 2 + 20; // lock outcut angle
 
 odist=rbo*2+20; // object distance
 
-module cardHolder(cardw,cardh,cardt) {
-    holdh=holdh(cardh);
-    holdw=holdw(cardw);
-    holdd=holdd(cardt);
-    translate([-holdw/2,0,0])
+module cardHolder(cardw,cardh,cardt,hwt=holdwt,hxa=holdxa,hbt=holdbt,hdi=holddi,hclr=holdclr,slide=false) {
+    h=holdh(cardh,hclr,hxa);
+    w=holdw(cardw,hclr,hwt);
+    d=holdd(cardt,hbt,hdi,hxa);
+    translate([-w/2,0,0])
     difference() {
         // base quader
-        linear_extrude (holdd) 
-            square([holdw, holdh]);
+        linear_extrude (d) 
+            square([w, h]);
         // outcut for thick the groove area
-        translate([holdwt+holdxa,0,holdbt])
-            linear_extrude(holdd)
-                square([holdw-(holdwt+holdxa)*2, holdh]);
+        translate([hwt+hxa,0,hbt])
+            linear_extrude(d)
+                square([w-(hwt+hxa)*2, h]);
         // esp outcut
-        translate([holdwt,(holdh-cardh)/2,holddi+holdbt])
-            linear_extrude(cardt) 
-                square([cardw,cardh]);
+        if(!slide) {
+            translate([hwt,(h-cardh)/2,hdi+hbt])
+                linear_extrude(cardt) 
+                    square([cardw,cardh]);
+        } else {
+            translate([hwt,(h-cardh)/2,hdi+hbt])
+                linear_extrude(cardt) 
+                    square([cardw,cardh+hxa+1]);
+        }
         // outcut for the thin wall area
-        translate([holdwt,0,holdbt])
-            linear_extrude(holddi-holdxa)
-                square([holdw-holdwt*2, holdh]);
+        translate([hwt,0,hbt])
+            linear_extrude(hdi-hxa)
+                square([w-hwt*2, h]);
     };  
 }
 
@@ -132,7 +138,7 @@ module senHolder() {
 }
 
 module ledHolder() {
-    cardHolder(ledw,ledh,ledt);
+    cardHolder(ledw,ledh,ledt,hdi=1,hwt=2,slide=true);
 }
 
 module carrierOutline() {
@@ -152,11 +158,11 @@ module lock() {
     union() {
         rotate([0,0,90+loa/2])
             rotate_extrude(angle=180-loa, $fn=200)
-                translate([ro, cvwh/2, 0])  
+                translate([ro, h0h+hwifh-lr*2, 0])  
                     lockOutline();
         rotate([0,0,-(90-loa/2)])
             rotate_extrude(angle=180-loa, $fn=200)
-                translate([ro, cvwh/2, 0])  
+                translate([ro, h0h+hwifh-lr*2, 0])  
                     lockOutline();
     }
 }
@@ -288,7 +294,9 @@ module lwindows() {
 }
 
 module h0windows() {
-    window(ro,hwiw,hwih);
+    for(ang = [-45,0,45]) {
+        rotate([0,0,ang]) window(ro,hwiw,hwih);
+    }
 }
 
 module h1windows() {
@@ -394,7 +402,7 @@ module projectionY() {
 //projectionY();
 
 translate([-odist*2,0,0]) 
-    baseComplete();
+   baseComplete();
 translate([-odist,0,0]) 
     bodyComplete();
 completeAssembly();
