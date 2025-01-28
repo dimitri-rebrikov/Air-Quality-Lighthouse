@@ -329,8 +329,7 @@ module groundFloorSeparate() {
 }
 
 // first floor for separate print
-module firstFloorSeparate() {
-    color("red") translate([odist*2,0,0]) 
+module firstFloorSeparate() { 
     difference() {
         bodyComplete();
         translate([-rob,-rob,0]) cube([rob*2,rob*2,h1h]);
@@ -341,7 +340,6 @@ module firstFloorSeparate() {
 
 // second floor for separate print
 module secondFloorSeparate() {
-    translate([odist*3,0,0]) 
     difference() {
         bodyComplete();
         translate([-rob,-rob,0]) cube([rob*2,rob*2,h2h]);
@@ -351,7 +349,6 @@ module secondFloorSeparate() {
 
 // roof for separate print
 module roofSeparate() {
-    color("red") translate([odist*4,0,0]) 
     difference() {
         bodyComplete();
         translate([-rob,-rob,0]) cube([rob*2,rob*2,tar]);
@@ -404,10 +401,13 @@ module projectionY() {
 translate([-odist*2,0,0]) 
    baseComplete();
 translate([-odist,0,0]) 
-    bodyComplete();
+   bodyComplete();
 completeAssembly();
 translate([odist,0,0]) 
-    groundFloorSeparate();
-firstFloorSeparate();
-secondFloorSeparate();
-roofSeparate();
+   groundFloorSeparate();
+translate([odist*2,0,0])
+   color("red") firstFloorSeparate();
+translate([odist*3,0,0]) 
+  secondFloorSeparate();
+translate([odist*4,0,0]) 
+  color("red") roofSeparate();
