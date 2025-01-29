@@ -31,7 +31,26 @@ light:
     pin: GPIO13
     num_leds: 1
     restore_mode: ALWAYS_ON
-
+    effects:
+      - pulse:
+      - pulse:
+          name: "Calibrating"
+          transition_length: 1s
+          update_interval: 2s
+          min_brightness: 70%
+          max_brightness: 100%
+      - pulse:
+          name: "Warning1"
+          transition_length: 0s
+          update_interval: 1s
+      - pulse:
+          name: "Warning2"
+          transition_length: 0s
+          update_interval: 0.5s
+      - pulse:
+          name: "Warning3"
+          transition_length: 0s
+          update_interval: 0.25s
 i2c:
 
 bme68x_bsec2_i2c:
@@ -61,13 +80,17 @@ text_sensor:
   - platform: bme68x_bsec2
     iaq_accuracy:
       name: "BME680 IAQ Accuracy"
+      id: iaqa
 
   - platform: template
     name: "BME680 IAQ Classification"
     icon: "mdi:checkbox-marked-circle-outline"
     lambda: |-
       auto l = id(led).turn_on().set_brightness(1.0);
-      auto aiq = "";     
+      auto aiq = "";
+      if ( iaqa->get_state().compare("Calibrated") != 0) {
+        l.set_effect("Calibrating");
+      }
       if ( int(id(iaq).state) <= 50) {
         aiq = "Excellent";
         l.set_rgb(0.0, 1.0, 0.0);
@@ -87,14 +110,17 @@ text_sensor:
       else if (int(id(iaq).state) >= 201 && int(id(iaq).state) <= 250) {
         aiq = "Heavily polluted";
         l.set_rgb(1.0, 0.0, 0.0);
+        l.set_effect("Warning1");
       }
       else if (int(id(iaq).state) >= 251 && int(id(iaq).state) <= 350) {
         aiq = "Severely polluted";
         l.set_rgb(1.0, 0.0, 0.0);
+        l.set_effect("Warning2");
       }
       else if (int(id(iaq).state) >= 351) {
         aiq =  "Extremely polluted";
         l.set_rgb(1.0, 0.0, 0.0);
+        l.set_effect("Warning3");
       }
       else {
         aiq = "error";
