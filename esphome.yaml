@@ -33,24 +33,41 @@ light:
     restore_mode: ALWAYS_ON
     effects:
       - pulse:
+          name: "Stabilizing"
+          transition_length: 0.25s
+          update_interval: 0.5s
+          min_brightness: 50%
+          max_brightness: 70%
+      - pulse:
+          name: "Uncertain"
+          transition_length: 0.5s
+          update_interval: 1s
+          min_brightness: 50%
+          max_brightness: 70%
       - pulse:
           name: "Calibrating"
           transition_length: 1s
           update_interval: 2s
-          min_brightness: 70%
-          max_brightness: 100%
+          min_brightness: 50%
+          max_brightness: 70%
       - pulse:
           name: "Warning1"
           transition_length: 0s
           update_interval: 1s
+          min_brightness: 0%
+          max_brightness: 70%
       - pulse:
           name: "Warning2"
           transition_length: 0s
           update_interval: 0.5s
+          min_brightness: 0%
+          max_brightness: 70%
       - pulse:
           name: "Warning3"
           transition_length: 0s
           update_interval: 0.25s
+          min_brightness: 0%
+          max_brightness: 70%
 i2c:
 
 bme68x_bsec2_i2c:
@@ -86,11 +103,8 @@ text_sensor:
     name: "BME680 IAQ Classification"
     icon: "mdi:checkbox-marked-circle-outline"
     lambda: |-
-      auto l = id(led).turn_on().set_brightness(1.0);
+      auto l = id(led).turn_on().set_brightness(0.7);
       auto aiq = "";
-      if ( iaqa->get_state().compare("Calibrated") != 0) {
-        l.set_effect("Calibrating");
-      }
       if ( int(id(iaq).state) <= 50) {
         aiq = "Excellent";
         l.set_rgb(0.0, 1.0, 0.0);
@@ -124,6 +138,9 @@ text_sensor:
       }
       else {
         aiq = "error";
+      }
+      if ( id(iaqa).state.compare("Calibrated") != 0) {
+        l.set_effect(id(iaqa).state);
       }
       l.perform();
       return {aiq};
