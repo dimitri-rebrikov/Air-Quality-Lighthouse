@@ -8,7 +8,7 @@ Implementation of an indoor air quality monitor based on [ESPhome](https://espho
 The idea came from https://www.thingiverse.com/thing:5652921 where the ESP module's heat creates a chimney effect inside of the lighthouse model ensuring the air quality sensor always gets the air from outside of the housing.
 
 This project provides the similar functionality: 
-- direct displaying of the air quality over the lighthouse LED light in the traffic light manner: from green over yellow to the flashing red 
+- visualizing of the air quality over the RGB LED light in the traffic light manner: from green over yellow to the flashing red 
 - sending of the detailed air and environmental information to the home automation server
 
 Instead of the direct coding in C/C++ it uses the ESPhome environment and "just sticks" the parts already implemented there together.
@@ -67,8 +67,20 @@ Here is my config for the Ultimaker Cura:
 
 ## Code
 
-TODO...
+The code is an [ESPhome](https://esphome.io/) configuration defined in an [yaml file](code/esphome.yaml).
 
-- [ESPHome definition of the Air Quality notification](code/esphome.yaml)
+You can open the [yaml file](code/esphome.yaml) in any editor and analyze what is doing by searching for the keywords on the [ESPhome website](https://esphome.io/).
 
-howto run esphome: `esphome -s esphome_name <your-name-for-the-device> run .\esphome.yaml`
+### Compiling and installing the code
+
+- install ESPhome environment as described in the [installation manual](https://esphome.io/guides/installing_esphome.html)
+- rename the [secrets.yaml_emplate](code/secrets.yaml_template) into `secrets.yaml` and fill the values
+- connect the ESP to the PC using the USB cable
+- open the command line window in the `code` subdirectory 
+- execute `esphome -s esphome_name <your-name-for-the-device> run .\esphome.yaml`
+- the esphome tool will compile and upload the code to the ESP
+- the esphome will not exit but rather executes the code on the ESP and spool its log output 
+- analyze the log output for possible issue
+- after that it is safe do disconnect the ESP from the PC and power it from a USB power supply
+- the code is now on the ESP and will be automatically started every time you power the ESP
+

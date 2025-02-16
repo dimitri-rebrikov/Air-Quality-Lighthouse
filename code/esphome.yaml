@@ -16,6 +16,9 @@ wifi:
     password: !secret ap_password
 
 captive_portal:
+
+# enable api if you have home assistant server
+# api:
     
 mqtt:
   broker: !secret mqtt_broker
@@ -68,6 +71,7 @@ light:
           update_interval: 0.25s
           min_brightness: 0%
           max_brightness: 70%
+
 i2c:
 
 bme68x_bsec2_i2c:
