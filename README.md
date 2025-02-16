@@ -32,7 +32,7 @@ The [source file](model/Lighthouse.scad) contains multiple commented configurati
 ![Lighthouse all parts](model/Lighthouse.png)
 
 Parts:
-- Base with the wall carrying circuit parts carrier
+- Base with the wall carrying the electronic boards
 - Shell (walls, windows, lantern, roof)
 
 The lantern is designed as an up side down cone with the idea to reflect the light from the LED under it spreading it in all directions.
