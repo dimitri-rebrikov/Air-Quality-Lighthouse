@@ -15,6 +15,12 @@ Instead of the direct coding in C/C++ it uses the ESPhome environment and "just 
 
 The lighthouse model is designed in OpenSCAD and is parametrizable so that it possible to use different ESP, Air Sensor and LED modules.
 
+### Gallery
+
+| | | |
+| ----------- | ----------- | ----------- |
+| ![Shell](model/Shell.jpg) | ![BaseWithESP](model/BaseWithESP.jpg) | ![BaseWithSensor](model/BaseWithSensor.jpg) | 
+
 ## Circuit
  
 ![Circuit Assembly](circuit/CircuitAssembly.jpg)
@@ -48,13 +54,7 @@ Only the sensor room has windows. So the chimney effect from the ESP soughs the 
 
 There is a lock mechanism between the base and the shell consists of the circular tongue on the inner wall of the shell and the grooves on the vertical wall of the base. The tongue has 2 symmetrical interruptions so the base can slide into the shell. Then the lock is activated by twisting the shell so the tongue come inside of the groove.
 
-### Gallery
-
-| | | |
-| ----------- | ----------- | ----------- |
-| ![Shell](model/Shell.jpg) | ![BaseWithESP](model/BaseWithESP.jpg) | ![BaseWithSensor](model/BaseWithSensor.jpg) | 
-
-### 3D Printing
+## 3D Printing
 
 The corresponding STL files are in the `model` subdirectory.
 
