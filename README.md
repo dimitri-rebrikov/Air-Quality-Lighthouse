@@ -73,14 +73,28 @@ You can open the [yaml file](code/esphome.yaml) in any editor and analyze what i
 
 ### Compiling and installing the code
 
-- install ESPhome environment as described in the [installation manual](https://esphome.io/guides/installing_esphome.html)
+- install ESPhome environment as described in the [installation manual](https://esphome.io/guides/installing_esphome.html), or use [uv](https://docs.astral.sh/uv/) which needs no installation at all
 - rename the [secrets.yaml_emplate](code/secrets.yaml_template) into `secrets.yaml` and fill the values
 - connect the ESP to the PC using the USB cable
-- open the command line window in the `code` subdirectory 
-- execute `esphome -s esphome_name <your-name-for-the-device> run .\esphome.yaml`
+- open the command line window in the `code` subdirectory
+- execute `uvx esphome -s esphome_name <your-name-for-the-device> run .\esphome.yaml` (or `esphome` instead of `uvx esphome` if you installed it)
+- run the command in a **PowerShell or cmd** window (the one in VS Code is fine); if you prefer Git Bash, see [Shell notes](#shell-notes)
+- the first build downloads the ESP32 toolchain (~1-2 GB) once; later builds are fast
 - the esphome tool will compile and upload the code to the ESP
 - the esphome will not exit but rather executes the code on the ESP and spool its log output 
 - analyze the log output for possible issue
 - after that it is safe do disconnect the ESP from the PC and power it from a USB power supply
 - the code is now on the ESP and will be automatically started every time you power the ESP
+
+#### Shell notes
+
+Use **PowerShell or cmd** (also the one in VS Code). In Git Bash (MSys) the ESP32 toolchain aborts with
+`ERROR: MSys/Mingw is not supported`, because of the `MSYSTEM` variable - Git Bash re-injects it into every
+child process, so `env -u MSYSTEM` cannot help. Deleting it natively is inherited by everything below, so:
+
+```bash
+powershell -c 'del env:MSYSTEM; uvx esphome -s esphome_name <your-name-for-the-device> run esphome.yaml'
+```
+
+Add `-nop` after `powershell` if your PowerShell profile interferes. ESP8266 configs are unaffected.
 
