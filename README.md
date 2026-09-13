@@ -98,3 +98,23 @@ powershell -c 'del env:MSYSTEM; uvx esphome -s esphome_name <your-name-for-the-d
 
 Add `-nop` after `powershell` if your PowerShell profile interferes. ESP8266 configs are unaffected.
 
+### Temperature offset
+
+That chimney effect does not keep the sensor on ambient air in practice: the reading stays about **3 °C too
+high** (placing the ESP32 higher than the sensor did not change it), so the residual is compensated in
+[esphome.yaml](code/esphome.yaml) with:
+
+```yaml
+bme68x_bsec2_i2c:
+  temperature_offset: 3
+```
+
+- BSEC **subtracts** the value: `T_out = T_raw - f(heating, supply voltage) - temperature_offset`.
+  So `3` reports 3 °C less; a negative value reports more.
+- It also corrects the heat compensated relative humidity (a plain sensor filter would not).
+- It is compiled into the firmware - changing it needs a recompile and flash. Check `supply_voltage` first,
+  no offset can fix a wrong value there.
+
+To find the value: run the device beside a reference thermometer (LED in its normal state, settled) and
+compare averages, not single samples.
+
