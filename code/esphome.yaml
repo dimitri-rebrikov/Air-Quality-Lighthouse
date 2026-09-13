@@ -86,6 +86,15 @@ bme68x_bsec2_i2c:
   operating_age: 28d
   sample_rate: LP
   supply_voltage: 3.3V
+  # The BME680 sits in the sensor room, where the chimney effect does not keep the
+  # air on ambient level in practice, so the reading stays about 3 °C too high
+  # (moving the ESP32 above the sensor did not change it). BSEC SUBTRACTS this
+  # value from the reading, see
+  #   T_out = T_raw - f(heating, supply voltage) - temperature_offset
+  # so 3 means "report 3 °C less" and a negative value would report more.
+  # The same value is applied to the heat compensated relative humidity.
+  # It is compiled into the firmware: changing it needs a recompile + flash.
+  temperature_offset: 3
 
 sensor:
   - platform: bme68x_bsec2
