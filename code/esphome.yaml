@@ -33,9 +33,10 @@ mqtt:
   discover_ip: True 
 
 light:
-  - platform: neopixelbus
+  - platform: esp32_rmt_led_strip
     id: led
-    variant: WS2812X
+    chipset: WS2812
+    channel_colors: GRB
     pin: GPIO13
     num_leds: 1
     restore_mode: ALWAYS_ON
